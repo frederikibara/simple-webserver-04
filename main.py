@@ -6,7 +6,7 @@ import json
 import os
 import urllib.parse
 
-# Убедитесь, что каталоги и файлы существуют
+
 if not os.path.exists('storage'):
     os.makedirs('storage')
 if not os.path.exists('storage/data.json'):
@@ -15,6 +15,16 @@ if not os.path.exists('storage/data.json'):
 
 
 class MyRequestHandler(BaseHTTPRequestHandler):
+    """
+    This class handles requests
+    to the server by providing static files and processing forms.
+
+    Methods:
+    - do_GET: Handles HTTP GET requests. Returns static files
+      (HTML, CSS, PNG) or a 404 error page if no file is found.
+    - do_POST: Handles HTTP POST requests. Receives form data and
+      sends them via UDP socket to another server for further processing.
+    """
     def do_GET(self):
         if self.path == '/':
             self.path = '/index.html'
@@ -50,17 +60,15 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         if self.path == '/submit':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length).decode('utf-8')
-            print(f"Received POST data: {post_data}")  # Добавлено для отладки
+            print(f"Received POST data: {post_data}") 
 
-            # Декодирование данных формы
             form_data = urllib.parse.parse_qs(post_data)
-            print(f"Parsed form data: {form_data}")  # Добавлено для отладки
+            print(f"Parsed form data: {form_data}")  
             message_data = {
                 "username": form_data.get('username', [''])[0],
                 "message": form_data.get('message', [''])[0]
             }
 
-        # Отправка данных на UDP сервер
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                 sock.sendto(json.dumps(message_data).encode('utf-8'), ('localhost', 5000))
